@@ -120,9 +120,62 @@ package org.example.Tool;  // 文件在 src/main/java/org/example/Tool/
 
 ---
 
+## 测试项目规范
+
+### Submodule 管理
+
+**所有被测试的 Java 代码仓库必须作为 Git Submodule 加入到测试项目中。**
+
+```
+TestProject/
+├── AGENTS/                    # 规范文档
+├── TestProject/               # 测试代码
+│   ├── pom.xml
+│   └── src/test/java/...
+├── projects/                  # 被测项目（全部为 submodule）
+│   ├── ProjectA/
+│   └── ProjectB/
+```
+
+**规则：**
+1. 被测项目放在 `projects/` 目录下，每个项目独立一个 submodule
+2. 测试项目通过 `build-helper-maven-plugin` 引入 submodule 源码
+3. 测试项目的 `pom.xml` 中必须配置 submodule 的源码路径
+4. 禁止直接复制或嵌套其他项目代码，必须使用 submodule
+
+**为什么必须使用 Submodule：**
+- 保持被测项目的独立版本管理
+- 测试项目始终引用最新的被测代码
+- CI/CD 自动拉取所有依赖的被测项目
+- 避免代码重复和版本不一致
+
+### pom.xml 配置示例
+
+```xml
+<!-- 引入 submodule 源码到编译路径 -->
+<plugin>
+    <groupId>org.codehaus.mojo</groupId>
+    <artifactId>build-helper-maven-plugin</artifactId>
+    <executions>
+        <execution>
+            <id>add-project-sources</id>
+            <phase>generate-sources</phase>
+            <goals><goal>add-source</goal></goals>
+            <configuration>
+                <sources>
+                    <source>../projects/被测项目/src/main/java</source>
+                </sources>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+```
+
+---
+
 ## 版本信息
 
-- 文档版本：1.1
+- 文档版本：1.2
 - 创建日期：2026-06-09
 - 更新日期：2026-06-09
 - 维护者：xty

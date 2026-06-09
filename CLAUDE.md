@@ -54,6 +54,23 @@ repository-name/
 - 遵循 Java 编码规范
 - 代码变更后同步更新文档
 
+## Submodule 管理 (CRITICAL)
+
+**所有被测试的 Java 代码仓库必须作为 Git Submodule 加入到测试项目中。**
+
+### 必须满足的条件
+
+1. 被测项目放在 `projects/` 目录下，每个项目独立一个 submodule
+2. 测试项目通过 `build-helper-maven-plugin` 引入 submodule 源码
+3. 禁止直接复制或嵌套其他项目代码，必须使用 submodule
+
+### 为什么
+
+- 保持被测项目的独立版本管理
+- 测试项目始终引用最新的被测代码
+- CI/CD 自动拉取所有依赖的被测项目
+- 避免代码重复和版本不一致
+
 ## Java Package Naming (CRITICAL)
 
 **所有 Java 代码必须遵守以下包命名规范，否则测试工具将无法正常工作：**
