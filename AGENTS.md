@@ -80,8 +80,49 @@ repository-name/
 
 ---
 
+## Java 包命名规范（必须遵守）
+
+### 规则
+
+1. **所有 Java 文件必须声明 `package` 语句**，且包名必须与文件所在目录结构一致
+2. **包名只使用小写字母**，禁止使用大写字母、下划线、连字符
+3. **包名使用反向域名格式**，例如 `org.example`、`com.bigdata.tool`
+4. **禁止使用 Java 保留字作为包名或类名**，包括但不限于：
+   - `value`、`test`、`class`、`new`、`import`、`package`、`public`、`private`、`protected`
+5. **测试类的包结构必须与生产代码一致**，例如：
+   ```
+   src/main/java/org/example/Tool/HibernateUtil.java  → package org.example.Tool;
+   src/test/java/org/example/Tool/HibernateUtilTest.java  → package org.example.Tool;
+   ```
+
+### 为什么重要
+
+- **Maven Surefire/Failsafe 插件**依赖包名匹配来发现测试类
+- **PIT 变异测试**需要正确的包路径来定位要变异的代码
+- **JaCoCo 覆盖率**按包名统计，包结构错误会导致覆盖率为 0%
+- **IDE 和 CI 工具**可能无法识别非标准包结构的代码
+
+### 常见错误示例
+
+```java
+// ❌ 错误：文件在 Tool/ 目录，但包名是 tool（大小写不匹配）
+package org.example.tool;  // 文件在 org/example/Tool/
+
+// ❌ 错误：使用保留字 value 作为类名
+public class value { }  // H2 数据库中 value 是保留字
+
+// ❌ 错误：测试类在默认包（无 package 语句）
+// src/test/java/MyTest.java 没有 package 语句
+
+// ✅ 正确：包名与目录结构完全匹配
+package org.example.Tool;  // 文件在 src/main/java/org/example/Tool/
+```
+
+---
+
 ## 版本信息
 
-- 文档版本：1.0
+- 文档版本：1.1
 - 创建日期：2026-06-09
+- 更新日期：2026-06-09
 - 维护者：xty
