@@ -2,6 +2,57 @@
 
 > 学期项目工程规范 - Spark 相关大数据项目
 
+## 0. 硬性要求（CRITICAL）
+
+### 0.1 Git Push 前置检查（强制）
+
+**在执行任何 `git push` 操作前，必须确保：**
+
+1. **AGENTS Submodule 为最新状态**
+   ```bash
+   # 检查 AGENTS submodule 状态
+   cd AGENTS
+   git pull origin master
+   cd ..
+   git add AGENTS
+   git commit -m "chore: 更新 AGENTS 规范至最新版本"
+   ```
+
+2. **符合最新规范标准**
+   - 仓库结构符合 PROJECT.md 要求
+   - 文档完整（Architecture.md、README.md、File_Index.md）
+   - 代码符合对应的 BACKEND.md 或 FRONTEND.md 规范
+
+3. **为什么**
+   - 确保所有项目遵循统一的最新规范
+   - 避免使用过时的规范导致不一致
+   - 保证 CI/CD 流程正常工作
+
+#### Git Push 检查清单
+
+```bash
+# 1. 进入 AGENTS 目录，更新到最新版本
+cd AGENTS
+git checkout master
+git pull origin master
+
+# 2. 返回项目根目录
+cd ..
+
+# 3. 如果 AGENTS 有更新，提交更新
+git add AGENTS
+git commit -m "chore: 更新 AGENTS 规范至最新版本"
+
+# 4. 检查自己的代码是否符合最新规范
+# - 阅读 AGENTS/PROJECT/*.md
+# - 确认符合所有要求
+
+# 5. 执行 git push
+git push
+```
+
+---
+
 ## 1. 项目概述
 
 本项目为学期项目的工程规范文档，定义了统一的仓库结构、文档标准、开发流程和代码规范。
@@ -352,7 +403,116 @@ public class DataProcessor {
 
 ---
 
-## 9. 附录
+## 9. 最佳实践建议
+
+### 9.1 GitHub 工作流（强烈推荐）
+
+**遵从 GitHub 工作流，积极管理 Issue 和 GitHub Projects。**
+
+#### Issue 管理
+
+**使用 Issue 追踪：**
+- 功能需求（Feature Request）
+- Bug 报告（Bug Report）
+- 技术债务（Technical Debt）
+- 文档改进（Documentation）
+
+**Issue 最佳实践：**
+```markdown
+## 标题格式
+[类型] 简短描述
+
+## 内容模板
+### 问题描述
+...
+
+### 复现步骤（Bug）
+1. 步骤一
+2. 步骤二
+
+### 期望行为
+...
+
+### 相关截图
+...
+
+### 环境信息
+- Java 版本：
+- 操作系统：
+```
+
+**标签使用：**
+- `bug` - 缺陷
+- `enhancement` - 功能增强
+- `documentation` - 文档相关
+- `good first issue` - 新手友好
+- `help wanted` - 需要帮助
+- `priority: high/medium/low` - 优先级
+
+#### GitHub Projects 管理
+
+**使用 Projects 进行任务规划：**
+
+1. **创建 Project Board（看板）**
+   - Todo（待办）
+   - In Progress（进行中）
+   - Review（审查中）
+   - Done（完成）
+
+2. **将 Issue 关联到 Project**
+   - 每个 Issue 应该在 Project 中有对应卡片
+   - 移动卡片反映工作进度
+
+3. **里程碑（Milestones）规划**
+   - 版本发布（v1.0, v2.0）
+   - 阶段目标（MVP, Beta, Release）
+
+#### Pull Request 工作流
+
+```
+1. 创建 Issue 描述需求/Bug
+   ↓
+2. 创建分支 (feature/xxx, bugfix/xxx)
+   ↓
+3. 开发 + 提交
+   ↓
+4. 创建 PR 并关联 Issue
+   ↓
+5. Code Review
+   ↓
+6. 合并到主分支
+   ↓
+7. 关闭 Issue
+```
+
+**PR 模板：**
+```markdown
+## 变更说明
+...
+
+## 关联 Issue
+Closes #123
+
+## 测试
+- [ ] 单元测试通过
+- [ ] 手动测试通过
+
+## 检查清单
+- [ ] 代码符合规范
+- [ ] 文档已更新
+- [ ] AGENTS submodule 已更新
+```
+
+#### 团队协作建议
+
+- **定期同步：** 每日/每周同步 Issue 和 Project 状态
+- **代码审查：** 所有 PR 必须至少一人 Review
+- **文档优先：** 重要决策记录在 Issue 或 Wiki 中
+- **自动化：** 利用 GitHub Actions 进行 CI/CD
+
+---
+
+## 10. 附录
 
 ### 9.1 文档版本
 

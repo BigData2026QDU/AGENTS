@@ -53,36 +53,46 @@ package org.example.tool;  // 文件在 src/main/java/org/example/tool/
 
 ---
 
-### 0.2 Submodule 管理（CRITICAL）
+### 0.2 Java 测试仓库规范（CRITICAL）
 
-**所有被测试的 Java 代码仓库必须作为 Git Submodule 加入到测试项目中。**
+**所有 Java 代码必须作为 Git Submodule 加入到统一的 Java 测试仓库进行测试。**
 
-#### 标准测试项目结构
+#### Java 测试仓库
+
+**仓库地址：** https://github.com/BigData2026QDU/JavaTestSkeleton
+
+**测试框架规范：** https://github.com/BigData2026QDU/JavaTestSkeleton/blob/main/README.md
+
+#### 标准测试仓库结构
 
 ```
-TestProject/
-├── AGENTS/                    # 规范文档
-├── TestProject/               # 测试代码
-│   ├── pom.xml
-│   └── src/test/java/...
-├── projects/                  # 被测项目（全部为 submodule）
+JavaTestSkeleton/
+├── AGENTS/                    # 规范文档 (submodule)
+├── JavaTestSkeleton/          # 测试框架代码
+│   ├── pom.xml               # Maven 配置
+│   └── src/test/java/...     # 测试代码
+├── projects/                  # 被测 Java 项目（全部为 submodule）
 │   ├── ProjectA/
 │   └── ProjectB/
+└── README.md
 ```
 
 #### 必须满足的条件
 
-1. 被测项目放在 `projects/` 目录下，每个项目独立一个 submodule
-2. 测试项目通过 `build-helper-maven-plugin` 引入 submodule 源码
-3. 测试项目的 `pom.xml` 中必须配置 submodule 的源码路径
-4. 禁止直接复制或嵌套其他项目代码，必须使用 submodule
+1. **所有 Java 项目必须作为 submodule 加入 `projects/` 目录**
+2. **测试框架通过 `build-helper-maven-plugin` 引入 submodule 源码**
+3. **测试项目的 `pom.xml` 必须配置 submodule 的源码路径**
+4. **禁止直接复制或嵌套其他项目代码，必须使用 submodule**
+5. **测试框架必须遵守 JavaTestSkeleton/README.md 中的规范**
 
 #### 为什么
 
+- 统一测试环境和测试框架
 - 保持被测项目的独立版本管理
 - 测试项目始终引用最新的被测代码
 - CI/CD 自动拉取所有依赖的被测项目
 - 避免代码重复和版本不一致
+- 确保所有项目符合相同的质量标准
 
 #### pom.xml 配置示例
 
