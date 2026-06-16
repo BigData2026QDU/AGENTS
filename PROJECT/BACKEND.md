@@ -121,6 +121,240 @@ JavaTestSkeleton/
 
 ---
 
+### 0.3 GitHub CI/CD 与包发布（CRITICAL）
+
+**所有 Java 模块项目必须配置 GitHub Actions CI/CD，用于自动化测试和发布 JAR 包。**
+
+#### 强制要求
+
+1. **必须有 GitHub Actions 工作流配置**
+   - 文件位置：`.github/workflows/ci.yml` 或 `.github/workflows/publish.yml`
+   
+2. **发布触发条件**
+   - JAR 包发布必须在 JavaTestSkeleton 测试通过后
+   - 测试仓库验证代码无误后才能发布
+   
+3. **发布目标**
+   - GitHub Packages（推荐）
+   - Maven Central（可选）
+   - 其他 Maven 仓库
+
+#### 为什么
+
+- 确保发布的包经过完整测试
+- 避免发布有缺陷的代码
+- 自动化发布流程，减少人工错误
+- 提供可追溯的版本历史
+
+#### CI/CD 工作流示例
+
+**`.github/workflows/ci.yml` - 持续集成**
+
+```yaml
+name: Java CI
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive  # 拉取 submodule（包括 AGENTS）
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    
+    - name: Build with Maven
+      run: mvn -B clean compile
+    
+    - name: Run tests
+      run: mvn -B test
+    
+    - name: Generate coverage report
+      run: mvn -B jacoco:report
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+```
+
+**`.github/workflows/publish.yml` - 包发布**
+
+```yaml
+name: Publish Package
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:  # 手动触发
+
+jobs:
+  # 第一步：在测试仓库中验证
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Trigger JavaTestSkeleton tests
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.PAT_TOKEN }}
+        script: |
+          await github.rest.actions.createWorkflowDispatch({
+            owner: 'BigData2026QDU',
+            repo: 'JavaTestSkeleton',
+            workflow_id: 'test.yml',
+            ref: 'master',
+            inputs: {
+              project_name: '${{ github.repository }}'
+            }
+          });
+    
+    - name: Wait for test completion
+      run: |
+        # 等待测试完成的逻辑
+        sleep 60
+        # 检查测试结果
+  
+  # 第二步：测试通过后发布
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        server-id: github  # GitHub Packages
+    
+    - name: Build package
+      run: mvn -B clean package -DskipTests
+    
+    - name: Publish to GitHub Packages
+      run: mvn -B deploy -DskipTests
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Upload JAR artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: java-package
+        path: target/*.jar
+```
+
+#### Maven 配置发布到 GitHub Packages
+
+**pom.xml 配置**
+
+```xml
+<project>
+    <!-- 项目信息 -->
+    <groupId>com.bigdata</groupId>
+    <artifactId>your-project</artifactId>
+    <version>1.0.0</version>
+    
+    <!-- 发布配置 -->
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/BigData2026QDU/YOUR-REPO</url>
+        </repository>
+    </distributionManagement>
+    
+    <build>
+        <plugins>
+            <!-- Maven Deploy Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>3.1.0</version>
+            </plugin>
+            
+            <!-- Source JAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <!-- Javadoc JAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+#### 版本管理
+
+**语义化版本（Semantic Versioning）：**
+- `MAJOR.MINOR.PATCH`（如 `1.0.0`）
+- MAJOR：不兼容的 API 变更
+- MINOR：向后兼容的功能新增
+- PATCH：向后兼容的问题修复
+
+**Release 流程：**
+```bash
+# 1. 更新版本号
+mvn versions:set -DnewVersion=1.1.0
+
+# 2. 提交变更
+git add pom.xml
+git commit -m "chore: bump version to 1.1.0"
+
+# 3. 创建标签
+git tag -a v1.1.0 -m "Release version 1.1.0"
+
+# 4. 推送
+git push && git push --tags
+
+# 5. 在 GitHub 创建 Release（触发发布工作流）
+gh release create v1.1.0 --title "v1.1.0" --notes "发布说明..."
+```
+
+#### 检查清单
+
+**发布前检查：**
+- [ ] 代码已在 JavaTestSkeleton 中测试通过
+- [ ] 版本号已更新
+- [ ] CHANGELOG.md 已更新
+- [ ] README.md 反映最新功能
+- [ ] GitHub Actions 工作流配置正确
+- [ ] 发布权限（GITHUB_TOKEN）配置正确
+
+---
+
 ## 1. 技术栈
 
 ### 1.1 核心技术

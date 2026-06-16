@@ -512,6 +512,95 @@ Closes #123
 
 ---
 
+### 9.2 GitHub CLI 工具（推荐）
+
+**推荐使用 `gh` CLI 提高 GitHub 工作流效率。**
+
+#### 安装
+
+```bash
+# Windows (使用 scoop 或 winget)
+scoop install gh
+# 或
+winget install --id GitHub.cli
+
+# macOS
+brew install gh
+
+# Linux
+# 参考 https://github.com/cli/cli#installation
+```
+
+#### 认证
+
+```bash
+gh auth login
+```
+
+#### 常用命令
+
+**Issue 管理：**
+```bash
+# 创建 Issue
+gh issue create --title "Bug: 登录失败" --body "描述..."
+
+# 列出 Issue
+gh issue list
+
+# 查看 Issue 详情
+gh issue view 123
+
+# 关闭 Issue
+gh issue close 123
+```
+
+**Pull Request 管理：**
+```bash
+# 创建 PR
+gh pr create --title "feat: 添加用户模块" --body "关联 Issue #123"
+
+# 列出 PR
+gh pr list
+
+# 查看 PR
+gh pr view 456
+
+# 检出 PR 到本地
+gh pr checkout 456
+
+# 合并 PR
+gh pr merge 456 --squash
+```
+
+**仓库管理：**
+```bash
+# 克隆仓库（自动配置 upstream）
+gh repo clone BigData2026QDU/AGENTS
+
+# 查看仓库信息
+gh repo view
+
+# Fork 仓库
+gh repo fork
+```
+
+**工作流查看：**
+```bash
+# 查看 GitHub Actions 运行状态
+gh run list
+
+# 查看具体运行日志
+gh run view 789
+```
+
+#### 优势
+
+- **快速操作：** 命令行直接管理 Issue/PR，无需打开浏览器
+- **脚本集成：** 可集成到 Shell 脚本和 CI/CD 流程
+- **提高效率：** 减少上下文切换，提升开发体验
+
+---
+
 ## 10. 附录
 
 ### 9.1 文档版本
