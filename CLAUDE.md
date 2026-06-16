@@ -1,108 +1,82 @@
 # CLAUDE.md
 
-## Project Overview
+> Claude Code / Codex 工作配置
 
-学期项目 (Semester Project) - Spark 相关大数据项目
+## 文档职责
 
-## Tech Stack
+本文档为 **Claude Code** 和 **Codex** 提供特定配置和工作指引。
 
-- **Java 17** (JDK 17)
-- Apache Spark (版本待定)
-- Python (版本待定)
+---
 
-**Important:** 开发前必须确认技术栈版本，确保代码符合要求。
+## 项目信息
 
-## Repository Structure
+- **项目类型：** 学期项目 - Spark 大数据处理
+- **仓库地址：** https://github.com/BigData2026QDU/AGENTS
+- **主要语言：** Java
+- **文档语言：** 中文
 
-每个仓库必须遵循以下结构：
+---
 
+## 工作流程
+
+### 1. 首次进入项目
 ```
-repository-name/
-├── repository-name/          # 源代码文件夹（与仓库同名）
-├── Architecture.md           # 架构说明文档（中文）
-├── README.md                 # 项目简介及使用说明（中文）
-├── File_Index.md             # 文件索引（中文）
-├── .git/
-├── .gitignore
-└── 其他 Git 管理文件
-```
-
-## Documentation Requirements
-
-### Architecture.md
-- 项目架构图或描述
-- 模块职责说明
-- 模块间关系和依赖
-- 数据流向
-- 关键技术点
-
-### README.md
-- 项目简介和目标
-- 主要功能特性
-- 环境要求
-- 快速开始指南
-- 构建和运行方法
-
-### File_Index.md
-- 每个文件的路径
-- 文件主要作用
-- 内容简要介绍
-
-## Code Style
-
-- 使用中文注释
-- 遵循 Java 编码规范
-- 代码变更后同步更新文档
-
-## Submodule 管理 (CRITICAL)
-
-**所有被测试的 Java 代码仓库必须作为 Git Submodule 加入到测试项目中。**
-
-### 必须满足的条件
-
-1. 被测项目放在 `projects/` 目录下，每个项目独立一个 submodule
-2. 测试项目通过 `build-helper-maven-plugin` 引入 submodule 源码
-3. 禁止直接复制或嵌套其他项目代码，必须使用 submodule
-
-### 为什么
-
-- 保持被测项目的独立版本管理
-- 测试项目始终引用最新的被测代码
-- CI/CD 自动拉取所有依赖的被测项目
-- 避免代码重复和版本不一致
-
-## Java Package Naming (CRITICAL)
-
-**所有 Java 代码必须遵守以下包命名规范，否则测试工具将无法正常工作：**
-
-### 必须满足的条件
-
-1. **每个 .java 文件必须有 `package` 声明**，且包名必须精确匹配文件目录路径
-2. **包名全小写**，例如 `org.example.tool`，不能有大写字母
-3. **测试类必须与生产代码在相同包结构下**：
-   ```
-   src/main/java/org/example/Tool/Foo.java    → package org.example.Tool;
-   src/test/java/org/example/Tool/FooTest.java → package org.example.Tool;
-   ```
-4. **禁止使用 Java 保留字**：`value`、`test`、`class`、`new`、`import`、`package`、`public`、`private`、`protected`、`void`、`int`、`string` 等
-
-### 为什么
-
-- Maven Surefire 插件通过包名匹配发现测试类
-- PIT 变异测试按包名定位要变异的生产代码
-- JaCoCo 覆盖率按包名统计
-- H2 数据库中 `value` 是 SQL 保留字，会导致 DDL 错误
-
-### 推荐包结构
-
-```
-org.example.{ModuleName}     → 例如 org.example.Tool, org.example.Service
+阅读 AGENTS.md（文档导航）
+    ↓
+阅读 PROJECT/PROJECT.md（必读，全项目规范）
+    ↓
+根据任务类型，阅读对应规范文档
 ```
 
-## Git Workflow
+### 2. 执行任务
+```
+确认任务类型（后端/前端/其他）
+    ↓
+查阅对应的 PROJECT/*.md 规范
+    ↓
+开发 + 保持文档同步
+    ↓
+提交前检查规范遵守情况
+```
 
-1. 确认技术栈版本
-2. 创建仓库结构
-3. 编写代码
-4. 更新三份文档
-5. 提交代码
+---
+
+## 规范文档路由
+
+| 任务类型 | 必读文档 | 选读文档 |
+|---------|---------|---------|
+| 任何任务 | PROJECT/PROJECT.md | - |
+| 后端开发 | PROJECT/PROJECT.md | PROJECT/BACKEND.md |
+| 前端开发 | PROJECT/PROJECT.md | PROJECT/FRONTEND.md |
+| 文档编写 | PROJECT/PROJECT.md | - |
+
+---
+
+## 关键配置
+
+### 响应语言
+- **文档：** 中文
+- **注释：** 中文
+- **Commit：** 中文
+
+### 文件编码
+- **编码：** UTF-8
+- **换行：** LF (Unix)
+
+### 遵循规范
+所有规范文档（PROJECT/*.md）中的要求均为**强制性**，必须严格遵守。
+
+---
+
+## 与其他 AI 工具的兼容性
+
+本文档设计为通用格式，兼容：
+- Claude Code (CLI/Desktop/Web)
+- Codex
+- 其他支持 Markdown 配置的 AI 工具
+
+---
+
+**文档版本：** 2.0  
+**更新日期：** 2026-06-16  
+**兼容：** Claude Code, Codex
