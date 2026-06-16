@@ -31,8 +31,10 @@
 
 #### 推荐包结构
 
+**本项目统一使用：**
+
 ```
-org.example.{modulename}     → 例如 org.example.tool, org.example.service
+org.bigdata.{modulename}     → 例如 org.bigdata.tool, org.bigdata.service
 ```
 
 #### 常见错误示例
