@@ -48,6 +48,7 @@
 | 任何任务 | PROJECT/PROJECT.md | - |
 | 后端开发 | PROJECT/PROJECT.md | PROJECT/BACKEND.md |
 | 前端开发 | PROJECT/PROJECT.md | PROJECT/FRONTEND.md |
+| 测试框架开发 | PROJECT/PROJECT.md | PROJECT/TESTING.md |
 | 文档编写 | PROJECT/PROJECT.md | - |
 
 ---
