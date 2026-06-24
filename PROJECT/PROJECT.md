@@ -485,32 +485,14 @@ public class DataProcessor {
    ↓
 3. 开发 + 提交
    ↓
-4. 创建 PR 并关联 Issue
+4. 代码审查（可选）
    ↓
-5. Code Review
+5. 合并到主分支
    ↓
-6. 合并到主分支
-   ↓
-7. 关闭 Issue（提供详实依据）
+6. 关闭 Issue（提供详实依据）
 ```
 
-**PR 模板：**
-```markdown
-## 变更说明
-...
-
-## 关联 Issue
-Closes #123
-
-## 测试
-- [ ] 单元测试通过
-- [ ] 手动测试通过
-
-## 检查清单
-- [ ] 代码符合规范
-- [ ] 文档已更新
-- [ ] AGENTS submodule 已更新
-```
+**注意：** 本项目采用直接提交推送的方式，不强制要求 PR 流程。
 
 ---
 
@@ -520,7 +502,26 @@ Closes #123
 
 ##### 必须提供的信息
 
-**通过 PR 关闭：**
+**直接提交修复：**
+```markdown
+## 问题已修复
+
+**修复方式：** [描述如何修复的]
+
+**相关提交：**
+- abc1234 - fix: 修复登录失败问题
+- def5678 - test: 添加登录测试用例
+
+**验证方式：**
+- [ ] 单元测试通过
+- [ ] 集成测试通过
+- [ ] 手动验证通过
+
+**修复详情：**
+修改了 UserService.java 中的登录验证逻辑，添加了参数非空校验。
+```
+
+**通过 PR 关闭（如使用 PR）：**
 ```markdown
 ## 问题已修复
 
@@ -633,7 +634,7 @@ gh issue close 123 --comment "## 问题已修复
 
 ##### GitHub Actions 自动验证
 
-**可以配置 GitHub Actions 检查关闭时是否有评论：**
+**配置 GitHub Actions 检查关闭时是否有说明：**
 
 ```yaml
 # .github/workflows/issue-close-check.yml
@@ -664,10 +665,9 @@ jobs:
           });
           
           const lastComment = comments.data[0];
-          const closedByPR = issue.pull_request !== undefined;
           
-          // 如果通过 PR 关闭，或者有关闭说明评论，则通过
-          if (closedByPR || (lastComment && lastComment.body.length > 50)) {
+          // 检查是否有关闭说明评论（长度 > 50 字符）
+          if (lastComment && lastComment.body.length > 50) {
             console.log('✅ 关闭依据充分');
           } else {
             // 重新打开 Issue 并要求提供关闭依据
@@ -682,7 +682,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issue.number,
-              body: '⚠️ **关闭 Issue 时必须提供详实的关闭依据**\n\n请参考 PROJECT.md 中的 Issue 关闭规范，提供以下信息之一：\n- 问题已修复（含 PR 链接和验证方式）\n- 标记为重复（指明重复的 Issue）\n- 无法复现（提供测试环境和步骤）\n- 不会修复（说明原因和替代方案）\n- 符合设计预期（解释设计原因）\n\n提供说明后可以再次关闭此 Issue。'
+              body: '⚠️ **关闭 Issue 时必须提供详实的关闭依据**\n\n请参考 PROJECT.md 中的 Issue 关闭规范，提供以下信息之一：\n- 问题已修复（含提交 SHA 和验证方式）\n- 标记为重复（指明重复的 Issue）\n- 无法复现（提供测试环境和步骤）\n- 不会修复（说明原因和替代方案）\n- 符合设计预期（解释设计原因）\n\n提供说明后可以再次关闭此 Issue。'
             });
           }
 ```
