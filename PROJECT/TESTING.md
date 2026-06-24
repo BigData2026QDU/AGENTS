@@ -514,6 +514,23 @@ jobs:
           
           for (const project of results.projects) {
             if (project.hasFailed) {
+              // 获取仓库所有者
+              const repo = await github.rest.repos.get({
+                owner: 'BigData2026QDU',
+                repo: project.name
+              });
+              const repoOwner = repo.data.owner.login;
+              
+              // 获取最近的 milestone
+              const milestones = await github.rest.issues.listMilestones({
+                owner: 'BigData2026QDU',
+                repo: project.name,
+                state: 'open',
+                sort: 'due_on',
+                direction: 'asc'
+              });
+              const nearestMilestone = milestones.data.length > 0 ? milestones.data[0].number : null;
+              
               const issueBody = `## 📋 问题概述
 
 **问题类型：** ${project.problemType}
@@ -576,13 +593,39 @@ ${project.fixSuggestions}
 🔗 **测试运行：** https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
 `;
 
-              await github.rest.issues.create({
+              // 创建 Issue
+              const issue = await github.rest.issues.create({
                 owner: 'BigData2026QDU',
                 repo: project.name,
                 title: `[测试报告] ${project.problemType} - ${project.summary}`,
                 body: issueBody,
-                labels: ['test-report', 'auto-generated', project.problemType, project.severity]
+                assignees: [repoOwner],  // 指派给仓库所有者
+                labels: ['test-report', 'auto-generated', project.problemType, project.severity],
+                milestone: nearestMilestone  // 关联最近的 milestone
               });
+              
+              // 添加到组织 Project
+              // 注意：需要使用 GraphQL API 或 Projects (beta) API
+              try {
+                // 使用 GraphQL 添加到 Project
+                await github.graphql(`
+                  mutation($projectId: ID!, $contentId: ID!) {
+                    addProjectV2ItemById(input: {
+                      projectId: $projectId
+                      contentId: $contentId
+                    }) {
+                      item {
+                        id
+                      }
+                    }
+                  }
+                `, {
+                  projectId: 'PVT_kwDOABcDhM4ApqXW',  // Project ID for https://github.com/orgs/BigData2026QDU/projects/3
+                  contentId: issue.data.node_id
+                });
+              } catch (error) {
+                console.log('无法添加到 Project:', error.message);
+              }
             }
           }
     
@@ -593,6 +636,82 @@ ${project.fixSuggestions}
         github-token: ${{ secrets.PAT_TOKEN }}
         script: |
           // 创建 [可发布] Issue（参见 0.3 节）
+```
+
+#### Issue 配置要求（强制）
+
+**自动创建的 Issue 必须包含以下配置：**
+
+1. **Assignees（指派人）**
+   - 自动指派给仓库所有者
+   - 获取方式：通过 GitHub API 获取 `repo.data.owner.login`
+
+2. **Labels（标签）**
+   - 必须包含：`test-report`、`auto-generated`
+   - 根据问题类型添加：
+     - `test-failure` - 测试失败
+     - `coverage-insufficient` - 覆盖率不足
+     - `code-violation` - 代码规范违规
+     - `performance-issue` - 性能问题
+     - `security-vulnerability` - 安全漏洞
+   - 根据严重程度添加：
+     - `priority: critical` (🔴)
+     - `priority: high` (🟠)
+     - `priority: medium` (🟡)
+     - `priority: low` (🔵)
+
+3. **Project（项目看板）**
+   - 组织 Project：https://github.com/orgs/BigData2026QDU/projects/3
+   - 名称：BiD2026QDU's KanBan
+   - 通过 GraphQL API 添加 Issue 到 Project
+   - Project ID: `PVT_kwDOABcDhM4ApqXW`
+
+4. **Milestone（里程碑）**
+   - 自动关联到最近的 open milestone
+   - 获取方式：
+     ```javascript
+     const milestones = await github.rest.issues.listMilestones({
+       owner: 'BigData2026QDU',
+       repo: project.name,
+       state: 'open',
+       sort: 'due_on',      // 按到期日期排序
+       direction: 'asc'     // 升序，最近的在前
+     });
+     const nearestMilestone = milestones.data[0].number;
+     ```
+   - 如果没有 open milestone，则不关联
+
+#### 获取 Project ID
+
+**方法一：通过 GraphQL 查询**
+
+```bash
+# 使用 gh CLI
+gh api graphql -f query='
+  query {
+    organization(login: "BigData2026QDU") {
+      projectV2(number: 3) {
+        id
+        title
+      }
+    }
+  }
+'
+```
+
+**方法二：通过浏览器开发者工具**
+1. 打开 Project 页面
+2. 打开浏览器开发者工具（F12）
+3. 在 Network 标签中查找 GraphQL 请求
+4. 找到 `projectId` 字段
+
+**方法三：使用 Projects (beta) API**
+
+```javascript
+const projects = await github.rest.projects.listForOrg({
+  org: 'BigData2026QDU'
+});
+// 注意：这个 API 返回的是旧版 Projects，新版 Projects 需要用 GraphQL
 ```
 
 #### 问题分类和严重程度定义
