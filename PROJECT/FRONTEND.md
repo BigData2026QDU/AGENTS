@@ -27,6 +27,43 @@
 - ❌ 构建工具（Webpack、Vite、Parcel 等）
 - ❌ 其他任何未在白名单中的库
 
+#### 白名单扩展流程
+
+**如果需要使用白名单外的技术栈，必须遵循以下流程：**
+
+1. **在 WebMain 仓库发起 Issue**
+   - 仓库地址：https://github.com/BigData2026QDU/WebMain
+   - Issue 标题：`[技术栈申请] 技术名称`
+   
+2. **Issue 内容模板**
+   ```markdown
+   ## 申请的技术栈
+   - 名称：
+   - 版本：
+   - 官方网站：
+   
+   ## 使用场景
+   描述为什么需要这个技术，现有白名单技术无法满足的具体场景。
+   
+   ## 技术优势
+   - 相比现有方案的优势
+   - 性能/功能/维护性等方面的考虑
+   
+   ## 影响范围
+   - 是否影响现有项目
+   - 学习成本评估
+   
+   ## 替代方案
+   如果不批准，是否有其他解决方案？
+   ```
+
+3. **审批流程**
+   - 团队讨论和评估
+   - 至少 2 人 approve
+   - 维护者更新白名单
+
+4. **在审批通过前，不得在项目中使用该技术**
+
 ---
 
 ### 0.2 统一网络模块（强制）
@@ -216,18 +253,109 @@ body {
 
 ---
 
-### 0.4 Submodule 测试规范（强制）
+### 0.4 前端目录结构规范（强制）
 
-**所有前端项目必须作为 Git Submodule 加入到前端测试仓库进行测试。**
+**所有前端项目的源代码必须按照以下结构组织。**
+
+#### 标准目录结构
+
+```
+repository-name/
+├── module-name/              # 模块目录（与仓库同名）
+│   ├── css/                 # 所有 CSS 文件（必需）
+│   │   ├── base.css
+│   │   ├── theme.css
+│   │   └── components/
+│   ├── js/                  # 所有 JavaScript 文件（必需）
+│   │   ├── main.js
+│   │   ├── modules/
+│   │   │   ├── network.js
+│   │   │   └── theme.js
+│   │   └── components/
+│   └── html/                # 所有 HTML 文件（必需）
+│       ├── index.html
+│       └── pages/
+├── assets/                   # 静态资源（可选）
+│   ├── images/
+│   └── fonts/
+├── Architecture.md          # 架构文档（必需）
+├── README.md                # 项目说明（必需）
+├── File_Index.md            # 文件索引（必需）
+└── STYLE_GUIDE.md          # 风格指南（必需）
+```
+
+#### 强制规则
+
+1. ✅ **模块目录必须包含三个子目录：`css/`, `js/`, `html/`**
+2. ✅ **所有 CSS 文件必须放在 `css/` 目录下**
+3. ✅ **所有 JavaScript 文件必须放在 `js/` 目录下**
+4. ✅ **所有 HTML 文件必须放在 `html/` 目录下**
+5. ❌ **禁止在模块目录根级散落源代码文件**
+6. ❌ **禁止混合文件类型在同一目录**
+
+#### 为什么
+
+- 清晰的文件类型分离，便于管理和查找
+- 统一结构，方便自动化测试工具识别
+- 符合前端测试仓库的要求
+- 便于大型项目的模块化组织
+
+#### 示例项目结构
+
+```
+DataVisualization/
+├── DataVisualization/
+│   ├── css/
+│   │   ├── base.css          # 基础样式
+│   │   ├── theme.css         # 主题样式
+│   │   ├── layout.css        # 布局样式
+│   │   └── components/
+│   │       ├── chart.css
+│   │       └── table.css
+│   ├── js/
+│   │   ├── main.js           # 应用入口
+│   │   ├── config.js         # 配置文件
+│   │   ├── modules/
+│   │   │   ├── network.js    # 网络模块（必需）
+│   │   │   ├── theme.js      # 主题模块（必需）
+│   │   │   └── chart.js      # 图表模块
+│   │   └── components/
+│   │       ├── header.js
+│   │       └── footer.js
+│   └── html/
+│       ├── index.html        # 主页
+│       └── pages/
+│           ├── dashboard.html
+│           └── detail.html
+├── assets/
+│   ├── images/
+│   │   └── logo.png
+│   └── fonts/
+├── Architecture.md
+├── README.md
+├── File_Index.md
+└── STYLE_GUIDE.md
+```
+
+---
+
+### 0.5 前端测试仓库规范（强制）
+
+**所有前端项目必须作为 Git Submodule 加入到统一的前端测试仓库进行测试。**
+
+#### 前端测试仓库
+
+**仓库地址：** https://github.com/BigData2026QDU/FrontendTestSkeleton
 
 #### 测试仓库结构
 
 ```
-FrontendTestProject/
-├── AGENTS/                    # 规范文档
+FrontendTestSkeleton/
+├── AGENTS/                    # 规范文档 (submodule)
 ├── tests/                     # 测试脚本
-│   ├── unit/                 # 单元测试
-│   ├── integration/          # 集成测试
+│   ├── structure/            # 目录结构测试
+│   ├── style/                # 代码风格测试
+│   ├── module/               # 模块测试（network, theme）
 │   └── e2e/                  # 端到端测试
 ├── projects/                  # 前端项目（全部为 submodule）
 │   ├── ProjectA/
@@ -235,13 +363,40 @@ FrontendTestProject/
 └── README.md
 ```
 
-#### 规则
+#### 必须满足的条件
 
-1. 前端项目放在 `projects/` 目录下，每个项目独立一个 submodule
-2. 禁止直接复制或嵌套其他项目代码，必须使用 submodule
-3. 测试脚本引用 `projects/` 下的项目进行测试
+1. **所有前端项目必须作为 submodule 加入 `projects/` 目录**
+2. **项目目录结构必须符合 0.4 节的规范**
+3. **必须包含 `network.js` 和 `theme.js` 模块**
+4. **测试脚本会自动验证：**
+   - 目录结构是否正确（css/js/html 三目录）
+   - 是否使用白名单外的技术
+   - 网络请求是否通过 NetworkModule
+   - 主题切换是否通过 ThemeModule
+   - 文档是否完整
 
-**测试仓库地址：** (待补充 - 将更新为前端测试仓库 URL)
+#### 为什么
+
+- 统一测试环境和测试标准
+- 自动化验证规范遵守情况
+- 确保所有前端项目质量一致
+- 避免技术栈违规
+
+#### 加入测试仓库流程
+
+```bash
+# 1. 前端测试仓库管理员操作
+cd FrontendTestSkeleton
+git submodule add https://github.com/BigData2026QDU/YourProject.git projects/YourProject
+git commit -m "feat: 添加 YourProject 前端模块"
+git push
+
+# 2. 触发测试
+# GitHub Actions 自动运行测试脚本，验证项目规范
+
+# 3. 查看测试结果
+# 检查 GitHub Actions 日志，确认所有测试通过
+```
 
 ---
 
@@ -249,32 +404,48 @@ FrontendTestProject/
 
 ### 1.1 标准目录结构
 
+**参见 0.4 节的强制目录结构要求。**
+
+核心结构重申：
+- `module-name/css/` - 所有 CSS 文件
+- `module-name/js/` - 所有 JavaScript 文件  
+- `module-name/html/` - 所有 HTML 文件
+
+### 1.2 文件组织建议
+
+**CSS 文件组织：**
 ```
-project-name/
-├── index.html                 # 主入口页面
-├── src/
-│   ├── modules/              # 核心模块（必需）
-│   │   ├── network.js       # 网络模块（必需）
-│   │   ├── theme.js         # 主题模块（必需）
-│   │   └── utils.js         # 工具模块
-│   ├── components/           # 可复用组件
-│   │   ├── header.js
-│   │   ├── footer.js
-│   │   └── ...
-│   ├── pages/                # 页面逻辑
-│   │   ├── home.js
-│   │   └── ...
-│   └── main.js               # 应用入口
-├── styles/
-│   ├── theme.css            # 主题样式（必需）
-│   ├── base.css             # 基础样式
-│   └── components/          # 组件样式
-├── assets/
-│   ├── images/
-│   └── fonts/
-├── Architecture.md           # 架构文档
-├── README.md                 # 项目文档
-└── File_Index.md            # 文件索引
+module-name/css/
+├── base.css              # 基础样式（重置、字体、颜色变量）
+├── theme.css             # 主题样式（日间/夜间）
+├── layout.css            # 布局样式（网格、容器）
+└── components/           # 组件样式
+    ├── button.css
+    ├── form.css
+    └── card.css
+```
+
+**JavaScript 文件组织：**
+```
+module-name/js/
+├── main.js               # 应用入口
+├── config.js             # 配置文件
+├── modules/              # 核心模块
+│   ├── network.js       # 网络模块（必需）
+│   ├── theme.js         # 主题模块（必需）
+│   └── utils.js         # 工具函数
+└── components/           # 组件逻辑
+    ├── header.js
+    └── footer.js
+```
+
+**HTML 文件组织：**
+```
+module-name/html/
+├── index.html            # 主页
+└── pages/                # 其他页面
+    ├── dashboard.html
+    └── detail.html
 ```
 
 ---

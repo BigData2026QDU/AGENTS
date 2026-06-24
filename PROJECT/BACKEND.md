@@ -364,8 +364,17 @@ gh release create v1.1.0 --title "v1.1.0" --notes "发布说明..."
 | 技术 | 版本 | 用途 |
 |------|------|------|
 | Java | 17 (LTS) | 主开发语言 |
-| Apache Spark | TBD | 分布式计算引擎 |
+| Apache Spark | 3.5.0 | 分布式计算引擎 |
+| Scala | 2.12 | Spark 依赖二进制版本 |
+| 数据库 | H2 2.2.224（测试默认）/ 业务库按项目声明 | 测试与业务持久化 |
 | Maven/Gradle | Latest | 构建工具 |
+
+**版本约束说明：**
+
+- Java 统一使用 17，保证本地开发、GitHub Actions 和 JavaTestSkeleton 的 JDK 一致。
+- Spark 统一使用 3.5.0，与本文档 Maven 示例中的 `spark.version` 保持一致。
+- Scala 统一使用 2.12，所有 Spark 依赖坐标必须使用 `_2.12` 后缀。
+- H2 2.2.224 仅作为单元测试默认数据库；如果项目使用 MySQL、PostgreSQL 等业务数据库，必须在项目 README 和配置示例中明确版本。
 
 ### 1.2 开发工具
 
@@ -794,6 +803,7 @@ class DataProcessorTest {
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <spark.version>3.5.0</spark.version>
+        <h2.version>2.2.224</h2.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     
@@ -824,6 +834,14 @@ class DataProcessorTest {
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>5.10.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- 测试数据库 -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>${h2.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -22,7 +22,8 @@ AGENTS.md (本文档)
     └─→ PROJECT/
         ├─→ PROJECT.md     # 全项目通用规范（必读）
         ├─→ BACKEND.md     # 后端开发规范
-        └─→ FRONTEND.md    # 前端开发规范
+        ├─→ FRONTEND.md    # 前端开发规范
+        └─→ TESTING.md     # 测试框架规范
 ```
 
 ---
@@ -50,9 +51,14 @@ AGENTS.md (本文档)
 - **何时读：** 后端开发任务
 
 ### PROJECT/FRONTEND.md
-- **职责：** 前端开发规范（如有需要）
+- **职责：** 前端开发规范（技术栈白名单、目录结构、交互设计）
 - **读者：** 前端开发者和 AI 助手
 - **何时读：** 前端开发任务
+
+### PROJECT/TESTING.md
+- **职责：** 测试框架规范（Submodule 管理、CI 触发、测试标准）
+- **读者：** 测试框架开发者和 AI 助手
+- **何时读：** 测试框架开发任务
 
 ---
 
@@ -69,6 +75,7 @@ AGENTS.md (本文档)
 根据当前任务类型，按需读取：
 - 后端任务 → `PROJECT/BACKEND.md`
 - 前端任务 → `PROJECT/FRONTEND.md`
+- 测试框架任务 → `PROJECT/TESTING.md`
 
 ### 第四步：执行任务
 遵循规范进行开发，保持文档同步。
@@ -86,6 +93,11 @@ AGENTS.md (本文档)
 | Spark 开发规范 | PROJECT/BACKEND.md |
 | 测试规范 | PROJECT/BACKEND.md |
 | Git 提交规范 | PROJECT/PROJECT.md |
+| 前端技术栈白名单 | PROJECT/FRONTEND.md |
+| 前端目录结构 | PROJECT/FRONTEND.md |
+| 测试框架开发 | PROJECT/TESTING.md |
+| Submodule 管理 | PROJECT/TESTING.md |
+| CI 触发机制 | PROJECT/TESTING.md |
 
 ---
 
