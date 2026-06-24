@@ -37,8 +37,9 @@ TestFramework/
 ├── .github/
 │   └── workflows/
 │       └── test.yml          # 测试 CI
-├── README.md
-└── Architecture.md
+├── Architecture.md           # 架构文档（必需）
+├── README.md                 # 项目说明（必需）
+└── File_Index.md             # 文件索引（必需）
 ```
 
 #### 添加被测项目流程
