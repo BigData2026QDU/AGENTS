@@ -491,7 +491,7 @@ public class DataProcessor {
    ↓
 6. 合并到主分支
    ↓
-7. 关闭 Issue
+7. 关闭 Issue（提供详实依据）
 ```
 
 **PR 模板：**
@@ -507,6 +507,206 @@ Closes #123
 - [ ] 手动测试通过
 
 ## 检查清单
+- [ ] 代码符合规范
+- [ ] 文档已更新
+- [ ] AGENTS submodule 已更新
+```
+
+---
+
+#### Issue 关闭规范（强制）
+
+**关闭 Issue 时必须提供详实的关闭依据。**
+
+##### 必须提供的信息
+
+**通过 PR 关闭：**
+```markdown
+## 问题已修复
+
+**修复方式：** [描述如何修复的]
+
+**关联 PR：** #456
+
+**验证方式：**
+- [ ] 单元测试通过
+- [ ] 集成测试通过
+- [ ] 手动验证通过
+
+**相关提交：**
+- abc1234 - fix: 修复登录失败问题
+- def5678 - test: 添加登录测试用例
+```
+
+**标记为重复：**
+```markdown
+## 重复 Issue
+
+此问题与 #123 重复。
+
+**相同点：**
+- 相同的错误信息
+- 相同的复现步骤
+- 相同的影响范围
+
+已在 #123 中跟踪和修复。
+```
+
+**标记为无法复现：**
+```markdown
+## 无法复现
+
+**测试环境：**
+- Java 版本：17
+- 操作系统：Ubuntu 22.04
+- 项目版本：v1.2.0
+
+**测试步骤：**
+1. [步骤 1]
+2. [步骤 2]
+3. [步骤 3]
+
+**测试结果：** 未能复现问题
+
+**建议：**
+如果问题仍然存在，请提供：
+- 详细的错误日志
+- 完整的环境信息
+- 精确的复现步骤
+```
+
+**标记为不会修复：**
+```markdown
+## 不会修复
+
+**原因：** [说明为什么不修复]
+
+**理由：**
+- 影响范围极小
+- 修复成本过高
+- 存在替代方案
+
+**替代方案：**
+[提供替代解决方案]
+```
+
+**标记为设计如此：**
+```markdown
+## 符合设计预期
+
+这是按设计工作的预期行为。
+
+**设计文档：** [链接到相关设计文档]
+
+**原因：**
+[解释为什么这样设计]
+
+**如果需要改变此行为：**
+请创建新的 Feature Request Issue 讨论需求。
+```
+
+##### 关闭 Issue 的完整流程
+
+```bash
+# 1. 确认问题已解决
+# 2. 在 Issue 中添加关闭说明（使用上述模板）
+# 3. 关闭 Issue
+gh issue close 123 --comment "## 问题已修复
+修复方式：修改了登录逻辑，添加了参数校验
+关联 PR：#456
+验证方式：单元测试和手动测试均通过"
+
+# 或通过 PR 自动关闭（在 PR 描述中使用 Closes #123）
+```
+
+##### 禁止的关闭方式
+
+❌ **直接关闭，不提供任何说明**
+- 违规示例：直接点击 Close Issue 按钮，没有任何评论
+
+❌ **提供模糊的说明**
+- 违规示例："已修复"、"完成了"、"不需要了"
+- 缺少具体信息，无法追溯
+
+❌ **关闭后不更新文档**
+- 如果 Issue 涉及文档，关闭时必须确认文档已更新
+
+##### GitHub Actions 自动验证
+
+**可以配置 GitHub Actions 检查关闭时是否有评论：**
+
+```yaml
+# .github/workflows/issue-close-check.yml
+name: Check Issue Close Reason
+
+on:
+  issues:
+    types: [closed]
+
+jobs:
+  check-close-reason:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check if close reason provided
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const issue = context.payload.issue;
+          
+          // 获取关闭前的最后评论
+          const comments = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: issue.number,
+            per_page: 10,
+            sort: 'created',
+            direction: 'desc'
+          });
+          
+          const lastComment = comments.data[0];
+          const closedByPR = issue.pull_request !== undefined;
+          
+          // 如果通过 PR 关闭，或者有关闭说明评论，则通过
+          if (closedByPR || (lastComment && lastComment.body.length > 50)) {
+            console.log('✅ 关闭依据充分');
+          } else {
+            // 重新打开 Issue 并要求提供关闭依据
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              state: 'open'
+            });
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              body: '⚠️ **关闭 Issue 时必须提供详实的关闭依据**\n\n请参考 PROJECT.md 中的 Issue 关闭规范，提供以下信息之一：\n- 问题已修复（含 PR 链接和验证方式）\n- 标记为重复（指明重复的 Issue）\n- 无法复现（提供测试环境和步骤）\n- 不会修复（说明原因和替代方案）\n- 符合设计预期（解释设计原因）\n\n提供说明后可以再次关闭此 Issue。'
+            });
+          }
+```
+
+##### 最佳实践
+
+1. **关闭前检查清单**
+   - [ ] 问题确实已解决/不需要解决
+   - [ ] 已添加关闭说明评论
+   - [ ] 相关文档已更新
+   - [ ] 测试已通过
+
+2. **使用标签辅助说明**
+   - `fixed` - 问题已修复
+   - `duplicate` - 重复问题
+   - `wontfix` - 不会修复
+   - `invalid` - 无效问题
+   - `works-as-designed` - 符合设计
+
+3. **引用相关资源**
+   - PR 链接
+   - 相关 Issue 链接
+   - 文档链接
+   - 测试报告链接
 - [ ] 代码符合规范
 - [ ] 文档已更新
 - [ ] AGENTS submodule 已更新
