@@ -118,7 +118,63 @@ python truncate_file.py input.csv -o output.csv --size 300
 - 分析任务查询
 - 结果输出到 Hive 表
 
-## 6. 开发工作流
+## 6. Spark + Hive 配置规范
+
+### 6.1 执行引擎配置
+
+**所有 SQL 文件必须在开头配置 Hive on Spark：**
+
+```sql
+-- 设置 Hive 执行引擎为 Spark
+SET hive.execution.engine=spark;
+SET spark.master=local[*];
+```
+
+### 6.2 配置说明
+
+| 配置项 | 值 | 说明 |
+|--------|-----|------|
+| `hive.execution.engine` | `spark` | 使用 Spark 作为执行引擎 |
+| `spark.master` | `local[*]` | 本地模式，使用所有 CPU 核心 |
+
+### 6.3 生产环境配置
+
+**集群环境配置：**
+```sql
+SET hive.execution.engine=spark;
+SET spark.master=yarn;
+SET spark.deploy.mode=cluster;
+```
+
+### 6.4 执行流程
+
+```
+hive -f xxx.sql
+    ↓
+Hive 解析 SQL
+    ↓
+提交到 Spark 执行
+    ↓
+返回结果
+```
+
+### 6.5 环境要求
+
+| 组件 | 版本 | 说明 |
+|------|------|------|
+| Hive | 3.1.x | 数据仓库，支持 Spark 引擎 |
+| Spark | 3.5.0 | 大数据处理框架 |
+| Hadoop | 3.x | 分布式存储（HDFS） |
+
+### 6.6 常见问题
+
+| 问题 | 原因 | 解决方案 |
+|------|------|---------|
+| Spark 引擎未配置 | 缺少 `SET hive.execution.engine=spark` | 在 SQL 文件开头添加配置 |
+| Spark 连接失败 | Spark 服务未启动 | 启动 Spark Master 和 Worker |
+| 内存不足 | 数据量过大 | 调整 `spark.executor.memory` |
+
+## 7. 开发工作流
 
 ### 6.1 新建项目
 
@@ -167,6 +223,6 @@ main_pipeline.bat
 
 ---
 
-**文档版本：** 1.0  
-**创建日期：** 2026-06-24  
+**文档版本：** 1.1  
+**更新日期：** 2026-06-24  
 **维护者：** yiyangchen609-web
