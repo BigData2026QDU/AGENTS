@@ -299,7 +299,14 @@ jobs:
 
 ### 0.5 自动问题报告机制（强制）
 
-**测试框架在发现问题时，必须自动在被测仓库创建 Issue，附带完整的问题报告。**
+**测试框架在发现问题时，必须自动在测试框架仓库创建 Issue，附带完整的问题报告和错误上下文，方便调试和讨论。**
+
+#### 为什么在测试框架仓库创建 Issue
+
+- **可能是测试框架的问题：** 测试失败不一定是被测代码的问题，也可能是测试框架本身的 Bug
+- **便于讨论和调试：** 在测试框架仓库集中管理所有测试问题，便于追踪和讨论
+- **避免干扰被测仓库：** 不在被测仓库创建大量可能是误报的 Issue
+- **双方协作：** 通过指派被测仓库作者和测试框架维护者，确保双方都能参与问题排查
 
 #### 触发条件
 
@@ -331,21 +338,23 @@ jobs:
 #### Issue 标题格式
 
 ```
-[测试报告] 问题类型 - 简短描述
+[测试报告] 被测项目名 - 问题类型 - 简短描述
 ```
 
 **示例：**
-- `[测试报告] 测试失败 - UserServiceTest.testLogin 失败`
-- `[测试报告] 覆盖率不达标 - 总体覆盖率 65% (要求 ≥70%)`
-- `[测试报告] 代码规范 - 包名使用了大写字母`
-- `[测试报告] 性能问题 - 数据处理耗时 5.2s (阈值 3s)`
-- `[测试报告] 安全漏洞 - 依赖项存在高危漏洞`
+- `[测试报告] UserService - 测试失败 - UserServiceTest.testLogin 失败`
+- `[测试报告] DataProcessor - 覆盖率不达标 - 总体覆盖率 65% (要求 ≥70%)`
+- `[测试报告] AuthModule - 代码规范 - 包名使用了大写字母`
+- `[测试报告] QueryEngine - 性能问题 - 数据处理耗时 5.2s (阈值 3s)`
+- `[测试报告] WebAPI - 安全漏洞 - 依赖项存在高危漏洞`
 
 #### 完整问题报告模板
 
 ```markdown
 ## 📋 问题概述
 
+**被测项目：** [项目名称]  
+**被测仓库：** https://github.com/BigData2026QDU/[项目名称]  
 **问题类型：** [测试失败 | 覆盖率不达标 | 代码规范违规 | 性能问题 | 安全漏洞]  
 **严重程度：** [🔴 严重 | 🟠 重要 | 🟡 一般 | 🔵 提示]  
 **发现时间：** YYYY-MM-DD HH:mm:ss  
@@ -397,30 +406,43 @@ jobs:
 
 ---
 
-## 🛠️ 复现步骤
+## 🔗 错误上下文
 
-1. 克隆被测仓库：`git clone ...`
-2. 切换到问题分支/提交：`git checkout <commit-sha>`
-3. 运行测试命令：`mvn test` / `npm test`
-4. 观察错误输出
+### 被测项目信息
+- **提交 SHA：** abc1234def5678
+- **提交作者：** @username
+- **提交时间：** YYYY-MM-DD HH:mm:ss
+- **提交信息：** feat: 添加用户登录功能
+- **分支：** master
+
+### 测试环境
+- **Java 版本：** 17 (如适用)
+- **Node 版本：** 18.x (如适用)
+- **操作系统：** Ubuntu 22.04
+- **测试框架版本：** v1.2.0
 
 ---
 
-## 💡 建议修复方案
+## 🛠️ 复现步骤
 
-### 方案一（推荐）
-[描述推荐的修复方案]
+1. 克隆测试框架：`git clone https://github.com/BigData2026QDU/JavaTestSkeleton.git`
+2. 更新 submodule：`git submodule update --init --recursive`
+3. 切换被测项目到问题提交：`cd projects/[项目名] && git checkout abc1234`
+4. 运行测试：`mvn test` / `npm test`
+5. 观察错误输出
 
-**优点：**
-- [优点 1]
-- [优点 2]
+---
 
-**实施步骤：**
-1. [步骤 1]
-2. [步骤 2]
+## 💡 可能的原因
 
-### 方案二（备选）
-[描述备选方案]
+### 原因一：被测代码问题
+[描述被测代码可能存在的问题]
+
+### 原因二：测试框架问题
+[描述测试框架可能存在的问题]
+
+### 原因三：环境问题
+[描述环境配置可能存在的问题]
 
 ---
 
@@ -429,7 +451,8 @@ jobs:
 - 测试报告完整日志：[链接]
 - 覆盖率报告：[链接]
 - CI 运行日志：[链接]
-- 相关文档：[链接]
+- 被测仓库：https://github.com/BigData2026QDU/[项目名称]
+- 问题提交：https://github.com/BigData2026QDU/[项目名称]/commit/abc1234
 
 ---
 
@@ -437,6 +460,7 @@ jobs:
 
 问题修复后需满足以下条件：
 
+- [ ] 确认问题根源（被测代码 / 测试框架 / 环境）
 - [ ] 所有测试通过
 - [ ] 覆盖率达标（≥70%）
 - [ ] 代码规范检查通过
@@ -448,13 +472,21 @@ jobs:
 
 ## 🏷️ 标签
 
-`test-report` `auto-generated` `[问题类型]` `[严重程度]`
+`test-report` `auto-generated` `[问题类型]` `[严重程度]` `needs-investigation`
+
+---
+
+## 👥 相关人员
+
+- **被测项目作者：** @[最近一次推送的作者]
+- **测试框架维护者：** @LuckyAnJun
 
 ---
 
 🤖 **此 Issue 由测试框架自动生成**  
 📅 **生成时间：** 2026-06-16 14:30:45  
-🔗 **测试运行：** https://github.com/BigData2026QDU/JavaTestSkeleton/actions/runs/12345
+🔗 **测试运行：** https://github.com/BigData2026QDU/JavaTestSkeleton/actions/runs/12345  
+⚠️ **注意：** 此问题可能是被测代码问题，也可能是测试框架问题，需要双方协作排查。
 ```
 
 #### GitHub Actions 自动化实现
@@ -503,36 +535,50 @@ jobs:
         # 解析测试结果，生成 JSON
         python scripts/parse-results.py > results.json
     
-    - name: Create issue for test failures
+    - name: Create issue for test failures in test framework repo
       if: steps.test.outputs.test_exit_code != '0'
       uses: actions/github-script@v6
       with:
-        github-token: ${{ secrets.PAT_TOKEN }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
           const fs = require('fs');
           const results = JSON.parse(fs.readFileSync('results.json', 'utf8'));
           
           for (const project of results.projects) {
             if (project.hasFailed) {
-              // 获取仓库所有者
-              const repo = await github.rest.repos.get({
-                owner: 'BigData2026QDU',
-                repo: project.name
-              });
-              const repoOwner = repo.data.owner.login;
-              
-              // 获取最近的 milestone
-              const milestones = await github.rest.issues.listMilestones({
+              // 获取被测项目的最近一次提交信息
+              const commits = await github.rest.repos.listCommits({
                 owner: 'BigData2026QDU',
                 repo: project.name,
-                state: 'open',
-                sort: 'due_on',
-                direction: 'asc'
+                per_page: 1
               });
-              const nearestMilestone = milestones.data.length > 0 ? milestones.data[0].number : null;
+              const latestCommit = commits.data[0];
+              const commitAuthor = latestCommit.author?.login || latestCommit.commit.author.name;
+              const commitSha = latestCommit.sha;
+              const commitMessage = latestCommit.commit.message;
+              const commitDate = latestCommit.commit.author.date;
+              
+              // 获取测试框架仓库的最近 milestone（可选）
+              let nearestMilestone = null;
+              try {
+                const milestones = await github.rest.issues.listMilestones({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  state: 'open',
+                  sort: 'due_on',
+                  direction: 'asc'
+                });
+                if (milestones.data.length > 0) {
+                  nearestMilestone = milestones.data[0].number;
+                }
+              } catch (error) {
+                console.log('无法获取 milestone:', error.message);
+              }
               
               const issueBody = `## 📋 问题概述
 
+**被测项目：** ${project.name}
+**被测仓库：** https://github.com/BigData2026QDU/${project.name}
 **问题类型：** ${project.problemType}
 **严重程度：** ${project.severity}
 **发现时间：** ${new Date().toISOString()}
@@ -558,74 +604,96 @@ ${project.testData}
 
 ---
 
-## 🛠️ 复现步骤
+## 🔗 错误上下文
 
-1. 克隆被测仓库：\`git clone https://github.com/BigData2026QDU/${project.name}.git\`
-2. 切换到提交：\`git checkout ${context.sha}\`
-3. 运行测试：\`${project.testCommand}\`
-4. 观察错误输出
+### 被测项目信息
+- **提交 SHA：** ${commitSha.substring(0, 7)}
+- **提交作者：** @${commitAuthor}
+- **提交时间：** ${commitDate}
+- **提交信息：** ${commitMessage.split('\n')[0]}
+- **分支：** ${latestCommit.commit.tree.sha ? 'master' : 'unknown'}
+
+### 测试环境
+- **操作系统：** Ubuntu 22.04
+- **测试框架版本：** ${{ github.sha }}
+- **运行环境：** GitHub Actions
 
 ---
 
-## 💡 建议修复方案
+## 🛠️ 复现步骤
 
-${project.fixSuggestions}
+1. 克隆测试框架：\`git clone https://github.com/${{ github.repository }}.git\`
+2. 更新 submodule：\`git submodule update --init --recursive\`
+3. 切换被测项目到问题提交：\`cd projects/${project.name} && git checkout ${commitSha}\`
+4. 运行测试：\`${project.testCommand}\`
+5. 观察错误输出
+
+---
+
+## 💡 可能的原因
+
+### 原因一：被测代码问题
+${project.possibleCauses?.codeIssue || '被测代码可能存在逻辑错误或不符合规范'}
+
+### 原因二：测试框架问题
+测试框架的测试用例或配置可能存在问题，需要检查测试逻辑是否正确
+
+### 原因三：环境问题
+依赖版本或环境配置可能与被测项目要求不一致
 
 ---
 
 ## 📎 相关资源
 
-- 测试报告：https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-- 覆盖率报告：${project.coverageUrl}
+- 测试报告完整日志：https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+- 覆盖率报告：${project.coverageUrl || 'N/A'}
+- 被测仓库：https://github.com/BigData2026QDU/${project.name}
+- 问题提交：https://github.com/BigData2026QDU/${project.name}/commit/${commitSha}
 
 ---
 
 ## ✅ 验收标准
 
+问题修复后需满足以下条件：
+
+- [ ] 确认问题根源（被测代码 / 测试框架 / 环境）
 - [ ] 所有测试通过
 - [ ] 覆盖率达标
 - [ ] 代码规范检查通过
 
 ---
 
+## 🏷️ 标签
+
+\`test-report\` \`auto-generated\` \`${project.problemType}\` \`${project.severity}\` \`needs-investigation\`
+
+---
+
+## 👥 相关人员
+
+- **被测项目作者：** @${commitAuthor}
+- **测试框架维护者：** @LuckyAnJun
+
+---
+
 🤖 **此 Issue 由测试框架自动生成**
 📅 **生成时间：** ${new Date().toLocaleString('zh-CN')}
 🔗 **测试运行：** https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+⚠️ **注意：** 此问题可能是被测代码问题，也可能是测试框架问题，需要双方协作排查。
 `;
 
-              // 创建 Issue
+              // 在测试框架仓库创建 Issue
               const issue = await github.rest.issues.create({
-                owner: 'BigData2026QDU',
-                repo: project.name,
-                title: `[测试报告] ${project.problemType} - ${project.summary}`,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: \`[测试报告] \${project.name} - \${project.problemType} - \${project.summary}\`,
                 body: issueBody,
-                assignees: [repoOwner],  // 指派给仓库所有者
-                labels: ['test-report', 'auto-generated', project.problemType, project.severity],
-                milestone: nearestMilestone  // 关联最近的 milestone
+                assignees: [commitAuthor, 'LuckyAnJun'].filter(Boolean),  // 指派给提交作者和维护者
+                labels: ['test-report', 'auto-generated', project.problemType, project.severity, 'needs-investigation'],
+                milestone: nearestMilestone
               });
               
-              // 添加到组织 Project
-              // 注意：需要使用 GraphQL API 或 Projects (beta) API
-              try {
-                // 使用 GraphQL 添加到 Project
-                await github.graphql(`
-                  mutation($projectId: ID!, $contentId: ID!) {
-                    addProjectV2ItemById(input: {
-                      projectId: $projectId
-                      contentId: $contentId
-                    }) {
-                      item {
-                        id
-                      }
-                    }
-                  }
-                `, {
-                  projectId: 'PVT_kwDOABcDhM4ApqXW',  // Project ID for https://github.com/orgs/BigData2026QDU/projects/3
-                  contentId: issue.data.node_id
-                });
-              } catch (error) {
-                console.log('无法添加到 Project:', error.message);
-              }
+              console.log(\`Created issue #\${issue.data.number} for project \${project.name}\`);
             }
           }
     
@@ -636,18 +704,37 @@ ${project.fixSuggestions}
         github-token: ${{ secrets.PAT_TOKEN }}
         script: |
           // 创建 [可发布] Issue（参见 0.3 节）
+          // 这个 Issue 需要在被测仓库创建，触发发布流程
 ```
 
 #### Issue 配置要求（强制）
 
 **自动创建的 Issue 必须包含以下配置：**
 
-1. **Assignees（指派人）**
-   - 自动指派给仓库所有者
-   - 获取方式：通过 GitHub API 获取 `repo.data.owner.login`
+1. **创建位置**
+   - 在**测试框架仓库**创建 Issue（不是被测仓库）
+   - JavaTestSkeleton：https://github.com/BigData2026QDU/JavaTestSkeleton
+   - FrontendTestSkeleton：https://github.com/BigData2026QDU/FrontendTestSkeleton
 
-2. **Labels（标签）**
-   - 必须包含：`test-report`、`auto-generated`
+2. **Assignees（指派人）**
+   - 自动指派给被测项目**最近一次推送的作者**
+   - 同时指派给测试框架维护人员：**LuckyAnJun**
+   - 获取方式：
+     ```javascript
+     // 获取被测项目最近一次提交
+     const commits = await github.rest.repos.listCommits({
+       owner: 'BigData2026QDU',
+       repo: project.name,
+       per_page: 1
+     });
+     const commitAuthor = commits.data[0].author?.login;
+     
+     // 指派给两个人
+     assignees: [commitAuthor, 'LuckyAnJun'].filter(Boolean)
+     ```
+
+3. **Labels（标签）**
+   - 必须包含：`test-report`、`auto-generated`、`needs-investigation`
    - 根据问题类型添加：
      - `test-failure` - 测试失败
      - `coverage-insufficient` - 覆盖率不足
@@ -660,59 +747,28 @@ ${project.fixSuggestions}
      - `priority: medium` (🟡)
      - `priority: low` (🔵)
 
-3. **Project（项目看板）**
-   - 组织 Project：https://github.com/orgs/BigData2026QDU/projects/3
-   - 名称：BiD2026QDU's KanBan
-   - 通过 GraphQL API 添加 Issue 到 Project
-   - Project ID: `PVT_kwDOABcDhM4ApqXW`
-
 4. **Milestone（里程碑）**
-   - 自动关联到最近的 open milestone
-   - 获取方式：
-     ```javascript
-     const milestones = await github.rest.issues.listMilestones({
-       owner: 'BigData2026QDU',
-       repo: project.name,
-       state: 'open',
-       sort: 'due_on',      // 按到期日期排序
-       direction: 'asc'     // 升序，最近的在前
-     });
-     const nearestMilestone = milestones.data[0].number;
-     ```
+   - 自动关联到测试框架仓库最近的 open milestone（可选）
    - 如果没有 open milestone，则不关联
 
-#### 获取 Project ID
+#### 问题讨论和解决流程
 
-**方法一：通过 GraphQL 查询**
+1. **Issue 创建后**
+   - 被测项目作者和测试框架维护者都会收到通知
+   - 双方可以在 Issue 中讨论问题根源
 
-```bash
-# 使用 gh CLI
-gh api graphql -f query='
-  query {
-    organization(login: "BigData2026QDU") {
-      projectV2(number: 3) {
-        id
-        title
-      }
-    }
-  }
-'
-```
+2. **问题排查**
+   - 确认是被测代码问题、测试框架问题还是环境问题
+   - 在 Issue 中记录排查过程和发现
 
-**方法二：通过浏览器开发者工具**
-1. 打开 Project 页面
-2. 打开浏览器开发者工具（F12）
-3. 在 Network 标签中查找 GraphQL 请求
-4. 找到 `projectId` 字段
+3. **问题修复**
+   - 如果是被测代码问题：被测项目作者修复后，在 Issue 中说明
+   - 如果是测试框架问题：测试框架维护者修复后，在 Issue 中说明
+   - 如果是环境问题：更新配置或文档
 
-**方法三：使用 Projects (beta) API**
-
-```javascript
-const projects = await github.rest.projects.listForOrg({
-  org: 'BigData2026QDU'
-});
-// 注意：这个 API 返回的是旧版 Projects，新版 Projects 需要用 GraphQL
-```
+4. **验证和关闭**
+   - 问题修复后重新运行测试
+   - 测试通过后关闭 Issue，并提供详实的关闭依据（参考 PROJECT.md 的 Issue 关闭规范）
 
 #### 问题分类和严重程度定义
 
