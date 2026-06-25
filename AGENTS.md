@@ -23,7 +23,8 @@ AGENTS.md (本文档)
         ├─→ PROJECT.md     # 全项目通用规范（必读）
         ├─→ BACKEND.md     # 后端开发规范
         ├─→ FRONTEND.md    # 前端开发规范
-        └─→ TESTING.md     # 测试框架规范
+        ├─→ TESTING.md     # 测试框架规范
+        └─→ SPARK.md       # Spark 流水线开发规范
 ```
 
 ---
@@ -60,6 +61,11 @@ AGENTS.md (本文档)
 - **读者：** 测试框架开发者和 AI 助手
 - **何时读：** 测试框架开发任务
 
+### PROJECT/SPARK.md
+- **职责：** Spark 流水线开发规范（目录结构、脚本要求、Hive on Spark 配置）
+- **读者：** Spark 开发者和 AI 助手
+- **何时读：** Spark 流水线开发任务
+
 ---
 
 ## 使用流程
@@ -76,6 +82,7 @@ AGENTS.md (本文档)
 - 后端任务 → `PROJECT/BACKEND.md`
 - 前端任务 → `PROJECT/FRONTEND.md`
 - 测试框架任务 → `PROJECT/TESTING.md`
+- Spark 流水线任务 → `PROJECT/SPARK.md`
 
 ### 第四步：执行任务
 遵循规范进行开发，保持文档同步。
@@ -98,6 +105,9 @@ AGENTS.md (本文档)
 | 测试框架开发 | PROJECT/TESTING.md |
 | Submodule 管理 | PROJECT/TESTING.md |
 | CI 触发机制 | PROJECT/TESTING.md |
+| Spark 流水线开发 | PROJECT/SPARK.md |
+| 流水线目录结构 | PROJECT/SPARK.md |
+| Hive on Spark 配置 | PROJECT/SPARK.md |
 
 ---
 

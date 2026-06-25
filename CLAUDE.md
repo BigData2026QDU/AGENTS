@@ -49,6 +49,7 @@
 | 后端开发 | PROJECT/PROJECT.md | PROJECT/BACKEND.md |
 | 前端开发 | PROJECT/PROJECT.md | PROJECT/FRONTEND.md |
 | 测试框架开发 | PROJECT/PROJECT.md | PROJECT/TESTING.md |
+| Spark 流水线开发 | PROJECT/PROJECT.md | PROJECT/SPARK.md |
 | 文档编写 | PROJECT/PROJECT.md | - |
 
 ---
