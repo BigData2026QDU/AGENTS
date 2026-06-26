@@ -10,70 +10,71 @@
 
 | 技术 | 版本 | 用途 |
 |------|------|------|
-| Java | 17 (JDK 17 LTS) | 主要开发语言 |
+| Scala | 2.12 | 主要开发语言 |
 | Apache Spark | 3.5.0 | 大数据处理框架 |
-| Scala | 2.12 | Spark 依赖二进制版本 |
+| sbt | 1.9+ | Scala 构建工具 |
 | Python | 3.8+ | 数据清洗脚本 |
-| Hive | 3.1.x | 数据仓库 |
-| HDFS | Hadoop 3.x | 分布式存储 |
+| Kafka | 3.6+ | 消息队列（实时流处理） |
+| MySQL | 8.0+ | 数据导出（JDBC） |
 
 ## 3. 目录结构规范
 
 ```
 项目仓库/
-├── dataset/                  # 原始数据目录（CSV 文件）
-├── truncatedDataset/         # 截断后数据（自动生成）
-├── cleanedDataset/           # 清洗后数据（自动生成）
-├── cleanPy/                  # Python 清洗脚本
-│   └── *.py
-├── initializeSQL/            # Hive 建表 SQL
-│   └── *.sql
-├── prepareData/              # 数据准备 SQL（Hive 查询）
-│   └── *.sql
-├── jobSQL/                   # 分析任务 SQL
-│   └── *.sql
-├── main_pipeline.sh          # Linux 流水线脚本
-├── main_pipeline.bat         # Windows 流水线脚本
-├── truncate_file.py          # 数据截断工具
-├── print_end.sh              # 结束标记脚本
+├── SparkMain/                    # 源代码目录
+│   ├── src/main/scala/org/example/
+│   │   ├── Main.scala            # 主入口
+│   │   ├── streaming/            # Spark Streaming 处理器
+│   │   │   ├── RatingStreamProcessor.scala
+│   │   │   └── RatingProducer.scala
+│   │   ├── analysis/             # 分析任务
+│   │   │   ├── AnalyzeRatings.scala
+│   │   │   └── AnalyzeGenres.scala
+│   │   └── utils/                # 工具类
+│   │       └── MySQLExporter.scala
+│   ├── build.sbt                 # sbt 构建配置
+│   └── test/                     # 测试代码
+├── dataset/                      # 原始数据目录（CSV 文件）
+├── dataset_test/                 # 测试数据目录（轻量级）
+├── cleanPy/                      # Python 清洗脚本
+├── cleanPy_test/                 # 测试清洗脚本
+├── output/                       # 分析结果输出
+├── config/                       # 配置文件
+├── main_pipeline_new.sh          # 流水线脚本
+├── main_pipeline_test.sh         # 测试流水线脚本
+├── start_streaming.sh            # 启动 Kafka + Spark Streaming
 └── README.md
 ```
 
 ## 4. 流水线执行流程
 
 ```
-步骤1: 检查/创建 Hive 数据库
+步骤1: 运行 truncate_file.py（截断大文件）
     ↓
-步骤2: 运行 truncate_file.py（截断大文件）
+步骤2: 运行 cleanPy/ 下的清洗脚本
     ↓
-步骤3: 运行 cleanPy/ 下的清洗脚本
+步骤3: 运行 Spark 分析任务（spark-submit）
     ↓
-步骤4: 上传 cleanedDataset/ 到 HDFS
+步骤4: 结果输出到 output/（Parquet/CSV）
     ↓
-步骤5: 检查 Hive 表，按需执行 initializeSQL/
-    ↓
-步骤6: 运行 prepareData/ 下的 SQL
-    ↓
-步骤7: 运行 jobSQL/ 下的分析任务
-    ↓
-步骤8: 打印结束标记
+步骤5: 导出到 MySQL（通过 JDBC）
 ```
 
 ## 5. 脚本规范
 
-### 5.1 main_pipeline.sh / main_pipeline.bat
+### 5.1 main_pipeline_new.sh
 
 **必需功能：**
-- 环境检查（hive、hdfs、python 命令）
-- 目录检查（dataset、cleanPy、initializeSQL、jobSQL）
+- 环境检查（spark-submit、python 命令）
+- 目录检查（dataset、cleanPy）
 - 错误处理（任何步骤失败立即退出）
 - 进度输出（每步骤打印标题和状态）
 
 **配置项：**
 ```bash
-HIVE_DB="bigdata_ana"           # Hive 数据库名
-HDFS_BASE_PATH="/user/hive/..." # HDFS 存储路径
 PYTHON_CMD="python3"            # Python 命令
+SPARK_MASTER="local[*]"         # Spark Master
+JAR_PATH="SparkMain/target/scala-2.12/sparkmain_2.12-1.0.jar"  # JAR 路径
 ```
 
 ### 5.2 truncate_file.py
@@ -89,13 +90,6 @@ python truncate_file.py
 python truncate_file.py input.csv -o output.csv --size 300
 ```
 
-**参数：**
-- `input_file`：输入文件（可选，默认处理 dataset/）
-- `-o, --output`：输出文件
-- `--size`：目标大小 MB（默认 300）
-- `--dataset-dir`：数据集目录
-- `--output-dir`：输出目录
-
 ### 5.3 清洗脚本（cleanPy/）
 
 **规范：**
@@ -104,125 +98,140 @@ python truncate_file.py input.csv -o output.csv --size 300
 - 输入：`truncatedDataset/` 或 `dataset/`
 - 输出：`cleanedDataset/`
 
-### 5.4 SQL 脚本
+### 5.4 Scala 分析任务
 
-**initializeSQL/：**
-- 建表语句
-- 表名与 CSV 文件名对应（去掉 .csv 后缀）
+**目录：** `SparkMain/src/main/scala/org/example/analysis/`
 
-**prepareData/：**
-- 数据准备查询
-- 创建中间表或视图
+**规范：**
+- 文件名：`Analyze任务名称.scala`
+- 必须包含 `main` 方法
+- 支持命令行参数（输入路径、输出路径）
+- 输出格式：Parquet 或 CSV
+- 支持 MySQL 导出（通过环境变量配置）
 
-**jobSQL/：**
-- 分析任务查询
-- 结果输出到 Hive 表
+**模板：**
+```scala
+package org.example.analysis
 
-## 6. Spark + Hive 配置规范
+import org.apache.spark.sql.{SparkSession, SaveMode}
+import org.example.utils.MySQLExporter
 
-### 6.1 执行引擎配置
+object AnalyzeXxx {
+  def main(args: Array[String]): Unit = {
+    val spark = SparkSession.builder()
+      .appName("AnalyzeXxx")
+      .getOrCreate()
 
-**所有 SQL 文件必须在开头配置 Hive on Spark：**
+    // 读取数据
+    val data = spark.read.parquet("output/ratings_streaming")
 
-```sql
--- 设置 Hive 执行引擎为 Spark
-SET hive.execution.engine=spark;
-SET spark.master=local[*];
+    // 分析逻辑
+    val result = data.groupBy("column").agg(...)
+
+    // 输出结果
+    result.write.mode("overwrite").parquet("output/xxx_stats")
+
+    // 导出到 MySQL（可选）
+    val jdbcUrl = sys.env.getOrElse("MYSQL_JDBC_URL", "")
+    if (jdbcUrl.nonEmpty) {
+      val props = MySQLExporter.createProperties(
+        sys.env.getOrElse("MYSQL_USER", ""),
+        sys.env.getOrElse("MYSQL_PASSWORD", "")
+      )
+      MySQLExporter.exportToMySQL(result, "xxx_stats", jdbcUrl, props)
+    }
+
+    spark.stop()
+  }
+}
 ```
 
-### 6.2 配置说明
+## 6. MySQL 导出规范
 
-| 配置项 | 值 | 说明 |
-|--------|-----|------|
-| `hive.execution.engine` | `spark` | 使用 Spark 作为执行引擎 |
-| `spark.master` | `local[*]` | 本地模式，使用所有 CPU 核心 |
+### 6.1 环境变量配置
 
-### 6.3 生产环境配置
-
-**集群环境配置：**
-```sql
-SET hive.execution.engine=spark;
-SET spark.master=yarn;
-SET spark.deploy.mode=cluster;
+```bash
+export MYSQL_JDBC_URL="jdbc:mysql://localhost:3306/bigdata_ana"
+export MYSQL_USER="root"
+export MYSQL_PASSWORD="password"
 ```
 
-### 6.4 执行流程
+### 6.2 JDBC URL 格式
 
 ```
-hive -f xxx.sql
-    ↓
-Hive 解析 SQL
-    ↓
-提交到 Spark 执行
-    ↓
-返回结果
+jdbc:mysql://host:port/database?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
 ```
 
-### 6.5 环境要求
+### 6.3 表命名规范
 
-| 组件 | 版本 | 说明 |
-|------|------|------|
-| Hive | 3.1.x | 数据仓库，支持 Spark 引擎 |
-| Spark | 3.5.0 | 大数据处理框架 |
-| Hadoop | 3.x | 分布式存储（HDFS） |
-
-### 6.6 常见问题
-
-| 问题 | 原因 | 解决方案 |
-|------|------|---------|
-| Spark 引擎未配置 | 缺少 `SET hive.execution.engine=spark` | 在 SQL 文件开头添加配置 |
-| Spark 连接失败 | Spark 服务未启动 | 启动 Spark Master 和 Worker |
-| 内存不足 | 数据量过大 | 调整 `spark.executor.memory` |
+- 分析结果表：`任务名_stats`
+- 示例：`movie_stats`, `genre_stats`, `user_stats`
 
 ## 7. 开发工作流
 
-### 6.1 新建项目
+### 7.1 新建分析任务
 
-1. 克隆仓库结构
-2. 配置 `.gitignore`（忽略 truncatedDataset/、cleanedDataset/）
-3. 将数据文件放入 `dataset/`
-4. 编写清洗脚本放入 `cleanPy/`
-5. 编写建表 SQL 放入 `initializeSQL/`
-6. 编写分析 SQL 放入 `jobSQL/`
+1. 在 `SparkMain/src/main/scala/org/example/analysis/` 创建 Scala 文件
+2. 遵循命名规范：`Analyze任务名称.scala`
+3. 实现 `main` 方法
+4. 在 `Main.scala` 中注册任务
+5. 本地测试通过后提交
 
-### 6.2 运行流水线
+### 7.2 运行流水线
 
-**Linux/Mac：**
 ```bash
-chmod +x main_pipeline.sh
-./main_pipeline.sh
+# 构建项目
+cd SparkMain
+sbt package
+
+# 运行流水线
+chmod +x main_pipeline_new.sh
+./main_pipeline_new.sh
 ```
 
-**Windows：**
-```cmd
-main_pipeline.bat
+### 7.3 运行单个任务
+
+```bash
+spark-submit \
+  --class org.example.analysis.AnalyzeRatings \
+  --master local[*] \
+  SparkMain/target/scala-2.12/sparkmain_2.12-1.0.jar
 ```
 
-### 6.3 调试
+## 8. CI/CD 规范
 
-- 检查每个步骤的输出日志
-- 验证 HDFS 文件是否上传成功
-- 验证 Hive 表是否创建成功
+### 8.1 CI 流程
 
-## 7. 常见问题
+1. **静态检查：** `sbt compile`
+2. **单元测试：** `sbt test`
+3. **构建 JAR：** `sbt package`
+4. **集成测试：** 使用测试数据运行流水线
+5. **发布：** 测试通过后发布到 Releases
+
+### 8.2 发布产物
+
+- **Releases：** 完整项目压缩包（含 JAR，不含源码）
+- **GitHub Packages：** 任务 JAR 文件
+
+## 9. 常见问题
 
 | 问题 | 原因 | 解决方案 |
 |------|------|---------|
-| `hive: command not found` | Hive 未安装或未配置 PATH | 安装 Hive 并配置环境变量 |
-| `hdfs: command not found` | Hadoop 未安装 | 安装 Hadoop 并配置环境变量 |
+| `sbt: command not found` | sbt 未安装 | 安装 sbt 并配置环境变量 |
+| `spark-submit: command not found` | Spark 未安装 | 安装 Spark 并配置环境变量 |
 | `python: command not found` | Python 未安装 | 安装 Python 3.8+ |
-| CSV 文件为空 | 数据清洗脚本输出异常 | 检查 cleanPy/ 脚本逻辑 |
-| Hive 表创建失败 | SQL 语法错误 | 检查 initializeSQL/ 中的 SQL |
+| MySQL 连接失败 | JDBC 配置错误 | 检查环境变量配置 |
+| JAR 文件不存在 | 未构建项目 | 运行 `sbt package` |
 
-## 8. 参考
+## 10. 参考
 
 - [Apache Spark 官方文档](https://spark.apache.org/docs/3.5.0/)
-- [Apache Hive 官方文档](https://hive.apache.org/)
+- [Scala 官方文档](https://www.scala-lang.org/documentation/)
+- [sbt 官方文档](https://www.scala-sbt.org/1.x/docs/)
 - [PROJECT.md](PROJECT.md) - 全项目通用规范
-- [BACKEND.md](BACKEND.md) - 后端开发规范
 
 ---
 
-**文档版本：** 1.1  
-**更新日期：** 2026-06-24  
+**文档版本：** 2.0  
+**更新日期：** 2026-06-26  
 **维护者：** yiyangchen609-web
