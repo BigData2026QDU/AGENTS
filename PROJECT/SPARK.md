@@ -22,7 +22,7 @@
 ```
 项目仓库/
 ├── SparkMain/                    # 源代码目录
-│   ├── src/main/scala/org/example/
+│   ├── src/main/scala/com/bigdata/
 │   │   ├── Main.scala            # 主入口
 │   │   ├── streaming/            # Spark Streaming 处理器
 │   │   │   ├── RatingStreamProcessor.scala
