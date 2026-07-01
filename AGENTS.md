@@ -16,9 +16,8 @@
 ## 文档体系
 
 ```
-AGENTS.md (本文档)
-    ↓ 导航
-    ├─→ CLAUDE.md          # Claude Code/Codex 配置
+    ├─→ AGENTS.md          # Codex 配置
+    ├─→ CLAUDE.md          # Claude Code 配置
     └─→ PROJECT/
         ├─→ PROJECT.md     # 全项目通用规范（必读）
         ├─→ BACKEND.md     # 后端开发规范
